@@ -75,7 +75,7 @@ getApp().then(app => {
       video.currentTime = nextTime;
     }
 
-    let seconds = [-5, -3, -1, 1, 3, 5].reverse();
+    let seconds = [-5, -1, 1, 5].reverse();
 
     seconds.forEach(second => {
       const next1SecondButton = createNextNSecondButton(second);
