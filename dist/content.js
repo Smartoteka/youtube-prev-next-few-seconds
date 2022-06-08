@@ -26,7 +26,7 @@ getApp().then(app => {
       throw new Error(`Can't find .ytp-left-controls`);
     }
 
-    let name = 'next-' + n + '-seconds';
+    let name = ('next-' + n + '-seconds').replaceAll('.', '-');
 
     let next = controlsContainer.querySelector('#' + name);
     if (next) {
@@ -45,7 +45,7 @@ getApp().then(app => {
       `<svg style="width: auto;height: 65%;" viewBox="0 0 24 24" width="24"><g transform="matrix(1 0 0 1 39.5 10.67)" style=""  >
 		<text xml:space="preserve" font-family="'Open Sans', sans-serif" font-size="18" font-style="normal" font-weight="normal"
      style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4;
-      fill: #ffffff; fill-rule: nonzero; opacity: 1; white-space: pre;" ><tspan x="-40" y="5.65" >`+ (n > 0 ? '+' : '') + n + `</tspan></text>
+      fill: #ffffff; fill-rule: nonzero; opacity: 1; white-space: pre;" ><tspan x="-40" y="5.65" >`+ (n > 0 ? '+' : '') + (Math.abs(n) === 0.042 ? 'f' : n) + `</tspan></text>
 </g></svg>`;
 
     const spanWrapper = document.createElement('span');
@@ -75,7 +75,7 @@ getApp().then(app => {
       video.currentTime = nextTime;
     }
 
-    let seconds = [-5, -1, 1, 5].reverse();
+    let seconds = [-5, -1, -0.042, 0.042, 1, 5].reverse();
 
     seconds.forEach(second => {
       const next1SecondButton = createNextNSecondButton(second);
@@ -86,7 +86,7 @@ getApp().then(app => {
     })
 
     document.onkeydown = (e) => {
-    
+
       if (e.ctrlKey) {
         switch (e.key) {
           case 'ArrowLeft'://left
@@ -97,6 +97,20 @@ getApp().then(app => {
           case 'ArrowRight'://right
             {
               moveToSecond(1);
+              break;
+            }
+          case '<':
+          case 'б':
+          case ','://left
+            {
+              moveToSecond(-0.042);
+              break;
+            }
+          case '>':
+          case 'ю':
+          case '.'://right
+            {
+              moveToSecond(0.042);
               break;
             }
         }

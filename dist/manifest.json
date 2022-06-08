@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YouTube next/previous few seconds",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Adds buttons move to the next 1, 5 and previous  1,5 seconds. You can use Arrows with control key and without.",
   "author": "Tatarkov Michail <flipworldit@gmail.com>",
   "homepage_url": "https://github.com/Smartoteka/youtube-prev-next-few-seconds",
