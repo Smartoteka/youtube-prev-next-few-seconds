@@ -65,9 +65,9 @@ getApp().then(app => {
 
   async function main() {
 
-    const video = app.querySelector('#ytd-player video');
-
     function moveToSecond(second) {
+      let video = document.querySelector('#ytd-player video');
+
       var nextTime = video.currentTime + second;
 
       nextTime = Math.max(0, nextTime)
