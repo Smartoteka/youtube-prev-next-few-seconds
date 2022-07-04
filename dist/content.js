@@ -5,7 +5,13 @@ function wait(t) {
 async function getApp() {
   while (true) {
 
-    const app = document.body.querySelector('#content ytd-watch-flexy');
+    let app = document.body.querySelector('#content ytd-watch-flexy');
+
+    if (app !== null) {
+      return app;
+    }
+
+    app = document.body.querySelector('.ckin__player');
 
     if (app !== null) {
       return app;
@@ -20,7 +26,11 @@ getApp().then(app => {
 
   function createNextNSecondButton(n) {
 
-    const controlsContainer = document.querySelector('.ytp-left-controls');
+    let controlsContainer = document.querySelector('.ytp-left-controls');
+
+    if (!controlsContainer) {
+      controlsContainer = document.querySelector('.left-controls');
+    }
 
     if (!controlsContainer) {
       throw new Error(`Can't find .ytp-left-controls`);
@@ -35,7 +45,7 @@ getApp().then(app => {
 
     next = document.createElement('button');
     next.id = name;
-    next.className = 'ytp-button';
+    next.className = 'ytp-button btn-icon default__button';
     next.style.cssText = 'display: inline-flex;'
       + 'justify-content: center;'
       + 'align-items: center;'
@@ -55,6 +65,10 @@ getApp().then(app => {
 
     let playButtonContainer = document.querySelector('.ytp-play-button');
 
+    if (playButtonContainer === null) {
+      playButtonContainer = controlsContainer.querySelector('.default__button');
+    }
+
     while (playButtonContainer.parentElement !== controlsContainer) {
       playButtonContainer = playButtonContainer.parentElement;
     }
@@ -68,6 +82,9 @@ getApp().then(app => {
     function moveToSecond(second) {
       let video = document.querySelector('#ytd-player video');
 
+      if(!video){
+        video = document.querySelector('.ckin__player video')
+      }
       var nextTime = video.currentTime + second;
 
       nextTime = Math.max(0, nextTime)
