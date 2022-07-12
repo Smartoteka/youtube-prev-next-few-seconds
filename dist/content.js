@@ -55,48 +55,38 @@ function getControlsContainer() {
 }
 
 function getPlayButtonContainer(controlsContainer) {
-  // for (let i = 0; i < 20; i++) {
   let playButtonContainer = document.querySelector('.ytp-play-button');
 
   if (playButtonContainer === null) {
     playButtonContainer = controlsContainer.querySelector('.default__button');
   }
 
-  if (playButtonContainer === null) {
-    playButtonContainer = document.querySelector('.playlist-controls-primary');
-    return playButtonContainer;
+  if (!playButtonContainer) {
+    playButtonContainer = document.querySelector('.custom_container');
+
+    if (!playButtonContainer) {
+      let container = document.createElement('div');
+      container.style = `
+      background-color: black;
+      z-index: 3;
+      position: relative;
+      padding-top: 10px;
+  `;
+      container.innerHTML = "<div class='custom_container'></div>";
+
+      document.querySelector('#player-control-container').insertAdjacentElement('afterend', container);
+      return document.querySelector('.custom_container');
+    }
+    else {
+      return playButtonContainer;
+    }
   }
-
-  //   await wait(100);
-  // }
-
-  // if (!playButtonContainer) {
-  //   playButtonContainer = document.querySelector('.custom_container');
-
-  //   if (!playButtonContainer) {
-  //     let container = document.createElement('div');
-  //     container.style = `
-  //     background-color: black;
-  //     z-index: 3;
-  //     position: relative;
-  //     padding-top: 10px;
-  // `;
-  //     container.innerHTML = "<div class='custom_container'></div>";
-
-  //     document.querySelector('#player-control-container').insertAdjacentElement('afterend', container);
-  //     return document.querySelector('.custom_container');
-  //   }
-  //   else {
-  //     return playButtonContainer;
-  //   }
-  //}
 
   while (playButtonContainer != controlsContainer && playButtonContainer.parentElement !== controlsContainer) {
     playButtonContainer = playButtonContainer.parentElement;
   }
   return playButtonContainer;
 }
-
 function initApp(app) {
   {
 
@@ -106,7 +96,7 @@ function initApp(app) {
       let playButtonContainer = getPlayButtonContainer(controlsContainer);
       let name = ('next-' + n + '-seconds').replaceAll('.', '-');
 
-      let next = playButtonContainer.querySelector('#' + name);
+      let next = playButtonContainer.parentElement.querySelector('#' + name);
       if (next) {
         return next;
       }
@@ -120,13 +110,18 @@ function initApp(app) {
         `<svg style="width: auto;height: 65%;" viewBox="0 0 24 24" width="24"><g transform="matrix(1 0 0 1 39.5 10.67)" style=""  >
       <text xml:space="preserve" font-family="'Open Sans', sans-serif" font-size="18" font-style="normal" font-weight="normal"
        style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4;
-        fill: #ffffff; fill-rule: nonzero; opacity: 1; white-space: pre;" ><tspan x="-40" y="5.65" >`+ (n > 0 ? '+' : '') + (Math.abs(n) === 0.042 ? 'f' : n) + `</tspan></text>
+        fill: #ffffff; fill-rule: nonzero; opacity: 1; white-space: pre;" ><tspan x="-40" y="5.65" >`
+        + (n > 0 ? '+' : '')
+        + (Math.abs(n) === 0.042
+          ?
+          (n > 0 ? 'f' : '-f')
+          : n)
+        + `</tspan></text>
   </g></svg>`;
 
       const spanWrapper = document.createElement('span');
       spanWrapper.appendChild(next);
 
-      
       playButtonContainer.insertAdjacentElement('afterend', spanWrapper);
       return next;
     }
@@ -144,6 +139,24 @@ function initApp(app) {
 
       return video;
     }
+
+    function waitForElementToDisplay(selector, callback, checkFrequencyInMs, timeoutInMs) {
+      var startTimeInMs = Date.now();
+      (function loopSearch() {
+        if (document.querySelector(selector) != null) {
+          callback();
+          return;
+        }
+        else {
+          setTimeout(function () {
+            if (timeoutInMs && Date.now() - startTimeInMs > timeoutInMs)
+              return;
+            loopSearch();
+          }, checkFrequencyInMs);
+        }
+      })();
+    }
+
     async function main() {
 
       function moveToSecond(second) {
@@ -158,23 +171,98 @@ function initApp(app) {
 
       let seconds = [-5, -1, -0.042, 0.042, 1, 5].reverse();
 
-
       seconds.forEach(second => {
         const next1SecondButton = createNextNSecondButton(second);
 
-        next1SecondButton.onclick = () => {
-          moveToSecond(second)
+        let mouseDownTimer = null;
+
+        const touchClickHandler = (e) => {
+          let timerMove = (isFirst) => {
+
+            if (mouseDownTimer && !next1SecondButton.matches(':hover')) {
+              console.log('not active')
+              clearTimeout(mouseDownTimer);
+              mouseDownTimer = null;
+            } else if (!mouseDownTimer && isFirst) {
+              console.log('active')
+
+              moveToSecond(second);
+              mouseDownTimer = setTimeout(timerMove, 250);
+            }
+            else if (!isFirst) {
+              moveToSecond(second);
+              mouseDownTimer = setTimeout(timerMove, 250);
+            }
+          };
+          timerMove(true);
+
         };
+
+        const mouseUpOrTouchEnd = () => {
+          console.log('mouseup')
+          if (mouseDownTimer) {
+            clearTimeout(mouseDownTimer);
+          }
+          mouseDownTimer = null;
+        };
+
+        if ('ontouchstart' in next1SecondButton) {
+          next1SecondButton.ontouchstart = touchClickHandler;
+          next1SecondButton.ontouchend = mouseUpOrTouchEnd;
+        }
+        else
+          next1SecondButton.onmousedown = touchClickHandler;
+        next1SecondButton.onmouseup = mouseUpOrTouchEnd;
       });
+
+
+
+      waitForElementToDisplay('.tgico-fullscreen', () => {
+        document.querySelector('.tgico-fullscreen').onclick = (el) => {
+          if (screen.orientation.type.indexOf('portrait') !== -1) {
+            this._height = document.querySelector('.media-viewer-mover').clientHeight;
+            delete document.querySelector('.media-viewer-caption').style.height
+            screen.orientation.lock('landscape')
+
+            document.querySelector("head").insertAdjacentHTML('afterend', '<style id="youtube-teleg-ext-style" type="text/css"></style>');
+
+            document.querySelector('#youtube-teleg-ext-style').sheet.insertRule(
+              `.left-controls span {
+              margin-left: 5px;
+              margin-right: 5px;
+          }`);
+          }
+          else {
+            document.querySelector('#youtube-teleg-ext-style').remove();
+            screen.orientation.lock('portrait');
+
+            setTimeout(() => {
+              document.querySelector('.media-viewer-mover').style.height = this._height + "px!important";
+
+            }, 200);
+
+          }
+        };
+      }, 200, 2000);
 
       let controlsContainer = getControlsContainer();
       let playButtonContainer = getPlayButtonContainer(controlsContainer);
 
+      if (playButtonContainer.classList.contains('custom_container')) {
+
+        waitForElementToDisplay('ytm-single-column-watch-next-results-renderer', () => {
+          let descriptionCtrl = document.querySelector('ytm-single-column-watch-next-results-renderer');
+
+          if (descriptionCtrl) {
+            descriptionCtrl.style = 'margin-top:30px';
+          }
+        }, 200, 4000);
+      }
       let name = ('speedSelect');
 
-      let speedCtrl = playButtonContainer.querySelector('#' + name);
+      let speedCtrl = playButtonContainer.parentElement.querySelector('#' + name);
       if (speedCtrl) {
-        return speedCtrl;
+        return;
       }
 
       speedCtrl = document.createElement('select');
@@ -210,7 +298,9 @@ function initApp(app) {
       }
       speedCtrl.onchange = playbackRateChange;
 
-      document.querySelector('.playback-rate').style = "display:none";
+      const playbackRate = document.querySelector('.playback-rate');
+      if (playbackRate)
+        playbackRate.style = "display:none";
       //       let timeMarks = document.createElement('select');
       //       timeMarks.id = "timeMarks";
       //       // next.className = 'ytp-button btn-icon default__button';
