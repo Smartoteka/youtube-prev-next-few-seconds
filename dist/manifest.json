@@ -13,11 +13,22 @@
       "matches": [
         "*://www.youtube.com/*",
         "*://m.youtube.com/*",
+        "*://vk.com/*",
         "*://web.telegram.org/*",
         "*://localhost/vite/*"
       ],
       "js": [
         "./content.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "*.js"
+      ],
+      "matches": [
+        "<all_urls>"
       ]
     }
   ],
@@ -30,5 +41,5 @@
   ],
   "background": {
     "service_worker": "./background.js"
-  }  
+  }
 }
